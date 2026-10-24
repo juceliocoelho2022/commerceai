@@ -21,7 +21,7 @@ import java.util.*;
   Map<Long,Integer> grouped=new LinkedHashMap<>();
   for(Line line:request.items()){grouped.merge(line.productId(),line.quantity(),(a,b)->Math.addExact(a,b));}
   List<Long> ids=new ArrayList<>(grouped.keySet());Collections.sort(ids);
-  for(Long id:ids){Product p=products.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.BAD_REQUEST,"Produto inválido: "+id));int q=grouped.get(id);if(q>p.stock)throw new ResponseStatusException(HttpStatus.CONFLICT,"Estoque insuficiente: "+p.name);p.stock-=q;order.add(p,q);}
+  for(Long id:ids){Product p=products.findByIdForUpdate(id).orElseThrow(()->new ResponseStatusException(HttpStatus.BAD_REQUEST,"Produto inválido: "+id));int q=grouped.get(id);if(q>p.stock)throw new ResponseStatusException(HttpStatus.CONFLICT,"Estoque insuficiente: "+p.name);p.stock-=q;order.add(p,q);}
   CustomerOrder saved=orders.saveAndFlush(order);return new OrderView(saved.id,saved.status,saved.total);
  }
  @GetMapping("/dashboard") public Dashboard dashboard(){List<Product> all=products.findAll();List<CustomerOrder> allOrders=orders.findAll();return new Dashboard(all.size(),allOrders.size(),allOrders.stream().map(o->o.total).reduce(BigDecimal.ZERO,BigDecimal::add),all.stream().filter(p->p.stock<=10).count());}
