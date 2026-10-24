@@ -1,4 +1,5 @@
 import React,{useState} from 'react';
+import OrdersDashboard,{getOrderData} from './OrdersDashboard.jsx';
 import {ShieldCheck,LogIn,LogOut,Plus,Save,Trash2,Pencil,RefreshCw} from 'lucide-react';
 
 const blank={name:'',category:'Eletrônicos',description:'',price:'',stock:'0',imageUrl:''};
@@ -23,17 +24,21 @@ export default function AdminPanel({onCatalogChange}){
  const [editing,setEditing]=useState(null);
  const [loading,setLoading]=useState(false);
  const [notice,setNotice]=useState('');
+ const [metrics,setMetrics]=useState(null);
+ const [orders,setOrders]=useState([]);
+ const [tab,setTab]=useState('products');
+ async function refreshOrders(jwt=token){const [m,o]=await getOrderData(jwt);setMetrics(m);setOrders(o)}
  async function refresh(jwt=token){setItems(await request('/admin/products',jwt));}
  async function login(event){
   event.preventDefault();setLoading(true);setNotice('');
   try{
    const result=await request('/auth/login','', 'POST',credentials);
-   await refresh(result.accessToken);
+   await Promise.all([refresh(result.accessToken),refreshOrders(result.accessToken)]);
    setToken(result.accessToken);setCredentials(v=>({...v,password:''}));
   }catch(error){setToken('');setItems([]);setNotice(error.message)}
   finally{setLoading(false)}
  }
- function logout(){setToken('');setItems([]);setEditing(null);setForm(blank);setNotice('Sessão encerrada.')}
+ function logout(){setToken('');setItems([]);setMetrics(null);setOrders([]);setTab('products');setEditing(null);setForm(blank);setNotice('Sessão encerrada.')}
  function edit(product){setEditing(product.id);setForm({name:product.name,category:product.category,description:product.description,price:String(product.price),stock:String(product.stock),imageUrl:product.imageUrl||''});}
  async function submit(event){
   event.preventDefault();setLoading(true);setNotice('');
@@ -59,6 +64,8 @@ export default function AdminPanel({onCatalogChange}){
    <label>Senha<input type="password" required autoComplete="current-password" value={credentials.password} onChange={e=>setCredentials(v=>({...v,password:e.target.value}))}/></label>
    <button className="primary" disabled={loading} type="submit">{loading?'Validando...':'Entrar no painel'} <LogIn size={16}/></button>
   </form>:<>
+   <div className="admin-tabs"><button type="button" className={tab==='products'?'selected':''} onClick={()=>setTab('products')}>Produtos</button><button type="button" className={tab==='orders'?'selected':''} onClick={()=>setTab('orders')}>Pedidos e Analytics</button></div>
+   {tab==='orders'?<OrdersDashboard metrics={metrics} orders={orders} loading={loading} onRefresh={()=>refreshOrders().catch(e=>setNotice(e.message))}/>:<>
    <div className="admin-summary"><div><span>Produtos cadastrados</span><strong>{items.length}</strong></div><div><span>Estoque baixo (≤10)</span><strong>{items.filter(x=>x.stock<=10).length}</strong></div><button type="button" className="secondary" disabled={loading} onClick={()=>refresh().catch(e=>setNotice(e.message))}><RefreshCw size={16}/> Atualizar</button></div>
    <div className="admin-layout"><form className="admin-editor" onSubmit={submit}><h3>{editing?'Editar produto #'+editing:'Cadastrar produto'}</h3>
     <label>Nome<input required maxLength={150} value={form.name} onChange={e=>setForm(v=>({...v,name:e.target.value}))}/></label>
@@ -70,6 +77,7 @@ export default function AdminPanel({onCatalogChange}){
     <button className="primary" type="submit" disabled={loading}>{editing?<Save size={16}/>:<Plus size={16}/>} {loading?'Salvando...':editing?'Salvar alterações':'Cadastrar produto'}</button>
     {editing&&<button type="button" className="secondary" onClick={()=>{setEditing(null);setForm(blank)}}>Cancelar edição</button>}
    </form><div className="admin-list"><h3>Catálogo administrável</h3><div className="admin-tablewrap"><table><thead><tr><th>Produto</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead><tbody>{items.map(product=><tr key={product.id}><td><strong>{product.name}</strong><small>{product.category}</small></td><td>{brl(product.price)}</td><td>{product.stock}</td><td><div className="admin-actions"><button type="button" title="Editar produto" onClick={()=>edit(product)}><Pencil size={16}/></button><button type="button" title="Excluir produto" disabled={loading} onClick={()=>remove(product)}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table></div>{!items.length&&<p>Nenhum produto cadastrado.</p>}</div></div>
+   </>}
   </>}
  </section>;
 }
