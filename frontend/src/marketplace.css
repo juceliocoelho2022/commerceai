@@ -1,0 +1,23 @@
+
+/* v0.3.1 — marketplace premium with sticky contextual shopping cart */
+.marketplace-layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;align-items:start;gap:20px}
+.marketplace-layout .products{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.productimage{height:185px;overflow:hidden}
+.catalog-photo{width:100%;height:100%;object-fit:contain;padding:18px;filter:drop-shadow(0 12px 20px #050b2d80)}
+.catalog-emoji{font-size:83px!important;line-height:1;filter:drop-shadow(0 12px 25px #4e8cff9c);transition:transform .2s}
+.product:hover .catalog-emoji{transform:scale(1.08)}
+.mini-cart{position:sticky;top:24px;border:1px solid #627de485;background:linear-gradient(165deg,#1b2c59,#121d43);border-radius:16px;padding:19px;box-shadow:0 16px 40px #01081980;color:#f2f6ff}
+.mini-cart-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #425b8a;padding-bottom:12px}
+.mini-cart-head h3{margin:0;font-size:17px}.mini-cart-head b{border-radius:8px;background:#6559fa;color:#fff;padding:4px 9px}
+.mini-cart-empty,.mini-cart-note{color:#a7bce2;font-size:12px;line-height:1.5}
+.mini-cart-item{display:flex;gap:11px;padding:14px 0;border-bottom:1px solid #39507b}
+.mini-cart-emoji{display:grid;place-items:center;background:#263c7a;border-radius:10px;font-size:26px;min-width:50px;height:55px}
+.mini-cart-item>div{min-width:0;flex:1}.mini-cart-item strong{font-size:12px;display:block;overflow-wrap:anywhere}.mini-cart-item small{display:block;color:#a5bffd;margin-top:4px}
+.mini-qty{display:flex;align-items:center;gap:9px;margin-top:9px;font-size:12px}
+.mini-qty button{background:#304a91;border:1px solid #5d79bb;border-radius:6px;color:white;width:25px;height:25px;display:grid;place-items:center}
+.mini-cart-total{display:flex;align-items:center;justify-content:space-between;margin-top:18px;font-size:13px}.mini-cart-total strong{font-size:18px}
+.mini-cart-checkout{display:flex;width:100%;margin:17px 0 10px}
+@media(min-width:1450px){.marketplace-layout .products{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1100px){.marketplace-layout{grid-template-columns:minmax(0,1fr) 240px}}
+@media(max-width:850px){.marketplace-layout{grid-template-columns:1fr}.mini-cart{position:static}.marketplace-layout .products{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:490px){.marketplace-layout .products{grid-template-columns:1fr}}
