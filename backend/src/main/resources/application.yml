@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: commerceai-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/commerceai}
+    username: ${DB_USER:commerceai}
+    password: ${DB_PASSWORD:commerceai_dev}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+server:
+  port: 8080
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
