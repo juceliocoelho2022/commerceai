@@ -10,6 +10,12 @@ MVP educacional de e-commerce com catálogo, carrinho, pedidos demonstrativos, g
 
 *Arte conceitual de apresentação. Telas, métricas de vendas e recursos de IA ilustrados na imagem não representam funcionalidades necessariamente implementadas. O MVP atual usa recomendações baseadas em regras e pedidos sem pagamento real.*
 
+## Direção comercial — Comércio para pequenas empresas (planejamento)
+
+O objetivo da próxima fase é oferecer o **CommerceAI Lojas** a pequenos comerciantes, com implantação, personalização e suporte. A primeira entrega comercial prevê **uma instância isolada por cliente**, antes de considerar SaaS multi-tenant compartilhado. **Checkout real, frete e publicação comercial ainda não estão implementados.**
+
+Consulte o [Plano comercial e técnico B2B](docs/COMMERCEAI_B2B_ROADMAP.md) para regras de negócio, arquitetura, critérios de segurança, proposta exploratória de preços e roadmap.
+
 ## Arquitetura
 
 ```text
