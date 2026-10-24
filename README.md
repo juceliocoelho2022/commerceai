@@ -141,3 +141,12 @@ O GitHub Actions executa testes Maven (Java 21) e build frontend (Node 22) em pu
 ## Licença
 
 Licença ainda não definida. Todos os direitos permanecem reservados ao titular do projeto.
+
+## Autenticação v0.2.0 (branch de desenvolvimento)
+
+- `POST /api/auth/register`: cadastro público sempre com perfil **CUSTOMER** (e-mail único, senha de 8 a 72 caracteres); senha armazenada como hash BCrypt.
+- `POST /api/auth/login`: emite JWT HS256 com prazo de 2 horas; exige variável `JWT_SECRET` com pelo menos 32 caracteres.
+- `/api/admin/**`: protegido por perfil ADMIN; **nenhuma conta ADMIN é criada automaticamente**.
+- Catálogo GET, dashboard GET e checkout POST permanecem públicos nesta etapa para preservar o MVP demonstrativo.
+- **Não coloque JWT_SECRET no GitHub.** Configure no seu `.env` local; para desenvolvimento use uma sequência aleatória longa, gerada localmente, e não a compartilhe.
+- Esta etapa ainda depende de CI e testes de integração para validação; cadastro, login e autorização devem ser exercitados antes do merge.
