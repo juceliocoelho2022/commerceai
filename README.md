@@ -1,73 +1,143 @@
-# CommerceAI — MVP v0.1.0
+# CommerceAI — Plataforma Inteligente de E-commerce
 
-Plataforma de e-commerce demonstrativa com **Java 21, Spring Boot 4.1.1, React 19, Vite, PostgreSQL 17, Flyway e Docker Compose**.
+![Java 21](https://img.shields.io/badge/Java-21-orange) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.1-green) ![React](https://img.shields.io/badge/React-19-blue) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue)
+
+MVP educacional de e-commerce com catálogo, carrinho, pedidos demonstrativos, gestão de estoque, dashboard e recomendações baseadas em regras. **Não há pagamento real nem modelo de IA generativa nesta versão.**
 
 ## Arquitetura
 
-```
-React/Vite (:3000) -- /api --> Spring Boot (:8080) --> JPA --> PostgreSQL (:5432 interno; :5433 host)
-                                                      \-> Flyway (V1, seed)
-```
-
-## Executar no Windows (PowerShell)
-
-Requisitos: Docker Desktop iniciado e Docker Compose v2. Execute na pasta raiz do projeto:
-
-```powershell
-Copy-Item .env.example .env
-# Altere DB_PASSWORD no .env se necessário
-
-docker compose up --build -d
-docker compose ps
-curl.exe http://localhost:8080/actuator/health
-curl.exe http://localhost:8080/api/products
+```text
+Navegador → React + Vite (:3000) → /api (proxy) → Spring Boot (:8080 interno)
+                                                   ├── JPA/Hibernate
+                                                   ├── Flyway (migração V1)
+                                                   └── PostgreSQL (db:5432)
+Host Windows: API 8085 · PostgreSQL 5440 · Frontend 3000
 ```
 
-Abra **http://localhost:3000**. Na primeira execução, o Docker compila e baixa dependências.
+## Estado validado (24/10/2026)
 
-Ver logs: `docker compose logs -f backend`; parar sem apagar banco: `docker compose down`; **apagar banco**: `docker compose down -v` (destrutivo).
+- PostgreSQL saudável e Flyway V1 aplicado; tabelas `products`, `customer_orders`, `order_items`, `flyway_schema_history`.
+- Actuator respondeu HTTP 200 / `UP`; Vite iniciado.
+- Catálogo com seis produtos; dois pedidos demonstrativos `CREATED`, cada um de R$ 89,90.
+- Valores dos pedidos conferidos com `SUM(quantity * unit_price)`, sem divergências.
+- Garrafa Térmica (ID 4) com estoque observado de 63 unidades. **A baixa ainda requer teste antes/depois e concorrência**.
+- Evidências obtidas no ambiente local do desenvolvedor; não equivalem a homologação de produção.
 
-## Endpoints
+## Regras de negócio
+
+### Catálogo de produtos (RN-CAT)
+
+| Código | Regra | Estado |
+|---|---|---|
+| RN-CAT-01 | Produtos são persistidos com identificador único. | Implementada |
+| RN-CAT-02 | Catálogo expõe nome, categoria, preço, estoque e descrição/imagem quando cadastradas. | Implementada |
+| RN-CAT-03 | A busca e filtragem por categoria são disponibilizadas na API. | Implementada |
+| RN-CAT-04 | Consultar produto inexistente retorna 404. | Implementada |
+| RN-CAT-05 | Cadastro e atualização administrativa com autorização exigirão autenticação. | Planejada |
+
+### Carrinho e pedidos (RN-PED)
+
+| Código | Regra | Estado |
+|---|---|---|
+| RN-PED-01 | Pedido precisa identificar cliente com nome e e-mail. | Implementada |
+| RN-PED-02 | Pedido precisa ter ao menos um item válido e quantidade positiva. | Implementada |
+| RN-PED-03 | Produtos repetidos na solicitação são agregados por quantidade. | Implementada |
+| RN-PED-04 | Produto inexistente na compra deve impedir a criação (400). | Implementada |
+| RN-PED-05 | Quantidade superior ao estoque disponível deve ser rejeitada (409). | Implementada; sem teste concorrente |
+| RN-PED-06 | Pedido aceito deve reduzir o estoque pela quantidade comprada. | Implementada; validar antes/depois |
+| RN-PED-07 | Item armazena nome e preço unitário no momento da compra (snapshot). | Implementada |
+| RN-PED-08 | `total` = soma de `quantity × unit_price`; cálculos monetários com `BigDecimal`. | Implementada e validada para 2 pedidos |
+| RN-PED-09 | Pedido nasce com status `CREATED`, que não significa pagamento confirmado. | Implementada |
+| RN-PED-10 | Pedido, itens e estoque devem ser processados de modo transacional. | Implementada com `@Transactional`; teste de rollback pendente |
+| RN-PED-11 | Controle de concorrência de estoque e idempotência devem evitar venda excessiva/duplicidade. | Pendente |
+| RN-PED-12 | Pagamento, frete, tributos, cupons, cancelamento e reembolso não integram este MVP. | Fora do escopo |
+
+### Analytics (RN-ANA)
+
+| Código | Regra | Estado |
+|---|---|---|
+| RN-ANA-01 | Contar produtos existentes. | Implementada |
+| RN-ANA-02 | Contar pedidos persistidos. | Implementada |
+| RN-ANA-03 | Indicador `revenue` soma valores de pedidos criados, **não receita recebida**. | Implementada |
+| RN-ANA-04 | Estoque baixo significa quantidade menor ou igual a 10. | Implementada |
+
+### Recomendações (RN-REC)
+
+| Código | Regra | Estado |
+|---|---|---|
+| RN-REC-01 | Recomendar apenas produtos com estoque positivo. | Implementada |
+| RN-REC-02 | Priorizar a categoria solicitada, quando informada. | Implementada |
+| RN-REC-03 | Desempate por estoque decrescente e ID crescente. | Implementada |
+| RN-REC-04 | Limitar resposta a quatro sugestões. | Implementada |
+| RN-REC-05 | Recomendações são determinísticas; não usam LLM ou histórico personalizado. | Implementada |
+
+### Segurança e dados (RN-SEG)
+
+| Código | Regra | Estado |
+|---|---|---|
+| RN-SEG-01 | Autenticação JWT e perfis ADMIN/CUSTOMER. | Planejada |
+| RN-SEG-02 | Serviços locais ficam publicados no loopback `127.0.0.1`. | Configuração Docker |
+| RN-SEG-03 | Não versionar `.env`, senhas, tokens e chaves. | Prática obrigatória |
+| RN-SEG-04 | Tratamento de dados pessoais, auditoria e LGPD exigem implementação antes de produção. | Planejada |
+
+## Modelo de dados
+
+- `products`: id, name, category, description, price, stock, image_url.
+- `customer_orders`: id, customer_name, customer_email, status, total, created_at.
+- `order_items`: id, order_id, product_id, product_name, quantity, unit_price.
+- `flyway_schema_history`: histórico das migrações.
+
+## API REST
 
 | Método | Rota | Descrição |
 |---|---|---|
-| GET | `/actuator/health` | Healthcheck |
+| GET | `/actuator/health` | Saúde da API |
 | GET | `/api/products` | Catálogo |
-| GET | `/api/products?category=Eletrônicos` | Filtrar |
-| GET | `/api/products/{id}` | Produto |
+| GET | `/api/products/{id}` | Detalhe do produto |
 | GET | `/api/recommendations?category=Casa` | Sugestões por regras |
-| GET | `/api/dashboard` | Indicadores |
-| POST | `/api/orders` | Criar pedido e reduzir estoque |
+| GET | `/api/dashboard` | Métricas agregadas |
+| POST | `/api/orders` | Criação de pedido demonstrativo |
 
-Exemplo pedido (PowerShell):
+## Executar localmente (Windows)
+
+Pré-requisito: Docker Desktop ativo. Configure `.env` a partir do exemplo sem versionar credenciais.
 
 ```powershell
-$body = @{ customerName='Cliente Demo'; customerEmail='demo@example.com'; items=@(@{productId=1;quantity=2}) } | ConvertTo-Json -Depth 4
-Invoke-RestMethod -Uri 'http://localhost:8080/api/orders' -Method Post -ContentType 'application/json' -Body $body
+cd C:\Projetos\commerceai
+docker compose up -d --build
+docker compose ps
+curl.exe http://127.0.0.1:8085/actuator/health
+curl.exe http://127.0.0.1:8085/api/products
 ```
 
-## Critérios de aceite
+Acesse http://localhost:3000. No Compose atualizado, host PostgreSQL = `5440`, host API = `8085`; **entre contêineres** use `db:5432` e `backend:8080`. Para Java executado pelo IntelliJ fora do Docker, use `localhost:5440` no JDBC. Não execute `docker compose down -v` se quiser preservar dados.
 
-1. `/actuator/health` responde `UP`.
-2. `/api/products` devolve 6 produtos iniciais.
-3. Catálogo, filtros, busca e carrinho operam no navegador.
-4. Ao criar pedido válido, o estoque diminui e `/api/dashboard` mostra um pedido a mais.
-5. Estoque insuficiente devolve HTTP 409; campo inválido devolve HTTP 400.
+Valide os pedidos:
 
-## IA: o que existe agora e o que virá
+```powershell
+docker compose exec db psql -U commerceai -d commerceai -c "SELECT id,status,total FROM customer_orders ORDER BY id DESC LIMIT 5;"
+docker compose exec db psql -U commerceai -d commerceai -c "SELECT o.id,o.total,SUM(i.quantity*i.unit_price) AS calculated FROM customer_orders o JOIN order_items i ON i.order_id=o.id GROUP BY o.id,o.total ORDER BY o.id;"
+```
 
-O endpoint `/api/recommendations` é **um motor determinístico de recomendações**, não um LLM nem um modelo treinado. Prioriza a categoria pedida e produtos disponíveis. Não utiliza histórico pessoal. A versão 0.2 pode adicionar um provedor LLM opcional, com chave apenas no backend, limites, logs sem PII, fallback, avaliação de respostas e política de consentimento.
+## Qualidade e CI
 
-## Limitações intencionais (MVP local)
+```powershell
+cd backend
+mvn test
+cd ..\frontend
+npm install
+npm run build
+```
 
-- Pedidos são *demonstrações*, sem gateway, liquidação, captura ou reembolso. Status `CREATED` não equivale a pago.
-- Dashboard usa soma de valores dos pedidos criados, não receita recebida.
-- Não há autenticação nem autorização: **não publicar como serviço de produção**.
-- Checkout usa transação única, mas bloqueio de concorrência/locking de estoque ainda não está implementado. Para carga real: `@Version` ou lock pessimista, idempotency key e testes concorrentes.
-- CORS não é necessário no desenvolvimento: Vite encaminha `/api` ao backend via proxy.
-- Senha padrão é apenas para desenvolvimento e deve ser trocada; Postgres exposto exclusivamente em loopback na porta 5433.
-- Fotos são representadas por emojis, sem imagens externas obrigatórias.
+O GitHub Actions executa testes Maven (Java 21) e build frontend (Node 22) em push e pull request para `main`. **Ainda é necessário confirmar a execução verde da pipeline**. Testes com PostgreSQL/Testcontainers, concorrência e E2E seguem pendentes.
 
-## Próximo marco v0.2
+## Roadmap
 
-Autenticação JWT/RBAC, gestão CRUD administrativa com auditoria, idempotência de pedidos, reserva de estoque concorrente, testes de integração com Testcontainers, API OpenAPI e IA generativa opcional com avaliações e proteção a prompt injection.
+- **v0.1.2**: documentação de regras de negócio, CI e estabilização.
+- **v0.2.0**: JWT/RBAC, CRUD administrativo, proteção concorrente do estoque, idempotência e testes integrados.
+- **v0.3.0**: assistente com IA generativa via backend, observabilidade, limites de custo e proteções.
+- **Antes da produção**: pagamentos com integração certificada, LGPD, auditoria, testes de carga e segurança.
+
+## Licença
+
+Licença ainda não definida. Todos os direitos permanecem reservados ao titular do projeto.
