@@ -4,6 +4,12 @@
 
 MVP educacional de e-commerce com catálogo, carrinho, pedidos demonstrativos, gestão de estoque, dashboard e recomendações baseadas em regras. **Não há pagamento real nem modelo de IA generativa nesta versão.**
 
+## Identidade visual
+
+![Arte conceitual CommerceAI — plataforma inteligente de e-commerce](docs/images/commerceai-banner.png)
+
+*Arte conceitual de apresentação. Telas, métricas de vendas e recursos de IA ilustrados na imagem não representam funcionalidades necessariamente implementadas. O MVP atual usa recomendações baseadas em regras e pedidos sem pagamento real.*
+
 ## Arquitetura
 
 ```text

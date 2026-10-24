@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import java.util.Optional;
 
 interface ProductRepository extends JpaRepository<Product,Long> {
@@ -15,6 +17,17 @@ interface ProductRepository extends JpaRepository<Product,Long> {
  @Query("select p from Product p where p.id = :id")
  Optional<Product> findByIdForUpdate(@Param("id") Long id);
 }
-interface OrderRepository extends JpaRepository<CustomerOrder,Long>{}
+interface OrderRepository extends JpaRepository<CustomerOrder,Long> {
+ List<CustomerOrder> findAllByOrderByCreatedAtDescIdDesc(Pageable pageable);
+ @EntityGraph(attributePaths = "items")
+ @Query("select o from CustomerOrder o where o.id = :id")
+ Optional<CustomerOrder> findDetailedById(@Param("id") Long id);
+ interface CreatedSummary {
+  long getCount();
+  java.math.BigDecimal getValue();
+ }
+ @Query("select count(o) as count, coalesce(sum(o.total), 0) as value from CustomerOrder o where o.status = 'CREATED'")
+ CreatedSummary aggregateCreated();
+}
 
 interface OrderItemRepository extends JpaRepository<OrderItem,Long> { boolean existsByProductId(Long productId); }
