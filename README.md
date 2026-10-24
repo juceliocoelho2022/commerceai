@@ -165,3 +165,9 @@ Todos os endpoints abaixo exigem JWT com perfil `ADMIN`; um usuário criado por 
 O corpo para criar ou editar produtos exige `name` (até 150 caracteres), `category` (até 70), `description` (até 500), `price` positivo com até duas casas decimais e `stock` não negativo. `imageUrl` é opcional (até 500 caracteres). Ao excluir produto já referenciado em `order_items`, a API retorna 409 para preservar o histórico.
 
 **Limite atual:** ainda não existe provisionamento de ADMIN por endpoint público nem painel visual administrativo; testes unitários não substituem testes HTTP de autorização ou testes integrados no PostgreSQL. Não promover esta branch para produção antes dessas validações.
+
+## Interface administrativa React (v0.2.0)
+
+Na aplicação web (`http://127.0.0.1:3000`), abra **Administração** na navegação lateral. Entre com uma conta já promovida ao perfil `ADMIN` no ambiente local. A interface utiliza `POST /api/auth/login` e inclui listagem, cadastro, edição e tentativa de exclusão de produtos. A confirmação da exclusão é feita no navegador; itens vinculados a pedidos são protegidos pelo backend com HTTP 409.
+
+O JWT fica apenas no estado React durante a sessão (não é persistido em `localStorage`); sair limpa o estado local. A autorização real é aplicada no Spring Security, não na visibilidade das telas. O módulo é demonstrativo e ainda precisa de testes E2E, revisão de mensagens de erro e tratamento mais amplo de sessão expirada.
