@@ -72,3 +72,4 @@ export default function AdminPanel({onCatalogChange}){
    </form><div className="admin-list"><h3>Catálogo administrável</h3><div className="admin-tablewrap"><table><thead><tr><th>Produto</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead><tbody>{items.map(product=><tr key={product.id}><td><strong>{product.name}</strong><small>{product.category}</small></td><td>{brl(product.price)}</td><td>{product.stock}</td><td><div className="admin-actions"><button type="button" title="Editar produto" onClick={()=>edit(product)}><Pencil size={16}/></button><button type="button" title="Excluir produto" disabled={loading} onClick={()=>remove(product)}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table></div>{!items.length&&<p>Nenhum produto cadastrado.</p>}</div></div>
   </>}
  </section>;
+}
