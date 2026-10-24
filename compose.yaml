@@ -18,6 +18,7 @@ services:
     build: ./backend
     environment:
       DB_URL: jdbc:postgresql://db:5432/commerceai
+      JWT_SECRET: ${JWT_SECRET:-}
       DB_USER: commerceai
       DB_PASSWORD: ${DB_PASSWORD:-commerceai_dev}
     depends_on:

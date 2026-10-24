@@ -141,3 +141,33 @@ O GitHub Actions executa testes Maven (Java 21) e build frontend (Node 22) em pu
 ## Licença
 
 Licença ainda não definida. Todos os direitos permanecem reservados ao titular do projeto.
+
+## Autenticação v0.2.0 (branch de desenvolvimento)
+
+- `POST /api/auth/register`: cadastro público sempre com perfil **CUSTOMER** (e-mail único, senha de 8 a 72 caracteres); senha armazenada como hash BCrypt.
+- `POST /api/auth/login`: emite JWT HS256 com prazo de 2 horas; exige variável `JWT_SECRET` com pelo menos 32 caracteres.
+- `/api/admin/**`: protegido por perfil ADMIN; **nenhuma conta ADMIN é criada automaticamente**.
+- Catálogo GET, dashboard GET e checkout POST permanecem públicos nesta etapa para preservar o MVP demonstrativo.
+- **Não coloque JWT_SECRET no GitHub.** Configure no seu `.env` local; para desenvolvimento use uma sequência aleatória longa, gerada localmente, e não a compartilhe.
+- Esta etapa ainda depende de CI e testes de integração para validação; cadastro, login e autorização devem ser exercitados antes do merge.
+
+## Administração de produtos — v0.2.0 (em validação)
+
+Todos os endpoints abaixo exigem JWT com perfil `ADMIN`; um usuário criado por `/api/auth/register` recebe somente `CUSTOMER`.
+
+| Método | Rota | Comportamento |
+| --- | --- | --- |
+| GET | `/api/admin/products` | Lista o catálogo para administração |
+| POST | `/api/admin/products` | Cria produto (HTTP 201) |
+| PUT | `/api/admin/products/{id}` | Atualiza os campos do produto |
+| DELETE | `/api/admin/products/{id}` | Exclui produto (HTTP 204), somente se não houver itens de pedidos associados |
+
+O corpo para criar ou editar produtos exige `name` (até 150 caracteres), `category` (até 70), `description` (até 500), `price` positivo com até duas casas decimais e `stock` não negativo. `imageUrl` é opcional (até 500 caracteres). Ao excluir produto já referenciado em `order_items`, a API retorna 409 para preservar o histórico.
+
+**Limite atual:** ainda não existe provisionamento de ADMIN por endpoint público nem painel visual administrativo; testes unitários não substituem testes HTTP de autorização ou testes integrados no PostgreSQL. Não promover esta branch para produção antes dessas validações.
+
+## Interface administrativa React (v0.2.0)
+
+Na aplicação web (`http://127.0.0.1:3000`), abra **Administração** na navegação lateral. Entre com uma conta já promovida ao perfil `ADMIN` no ambiente local. A interface utiliza `POST /api/auth/login` e inclui listagem, cadastro, edição e tentativa de exclusão de produtos. A confirmação da exclusão é feita no navegador; itens vinculados a pedidos são protegidos pelo backend com HTTP 409.
+
+O JWT fica apenas no estado React durante a sessão (não é persistido em `localStorage`); sair limpa o estado local. A autorização real é aplicada no Spring Security, não na visibilidade das telas. O módulo é demonstrativo e ainda precisa de testes E2E, revisão de mensagens de erro e tratamento mais amplo de sessão expirada.
