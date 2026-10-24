@@ -16,3 +16,5 @@ interface ProductRepository extends JpaRepository<Product,Long> {
  Optional<Product> findByIdForUpdate(@Param("id") Long id);
 }
 interface OrderRepository extends JpaRepository<CustomerOrder,Long>{}
+
+interface OrderItemRepository extends JpaRepository<OrderItem,Long> { boolean existsByProductId(Long productId); }
