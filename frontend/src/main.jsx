@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {ShoppingCart,Sparkles,Search,Package,ChartColumnIncreasing,ArrowRight,CheckCircle2,Minus,Plus} from 'lucide-react';
 import './style.css';
 import './neon.css';
+import './marketplace.css';
 import AdminPanel from './AdminPanel.jsx';
 const api=async(p,options)=>{const r=await fetch('/api'+p,{headers:{'Content-Type':'application/json'},...options});if(!r.ok){let msg='Erro na operação';try{const d=await r.json();msg=d.detail||d.error||msg}catch{}throw Error(msg)}return r.json()};
 const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(n);
