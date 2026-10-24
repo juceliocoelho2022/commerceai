@@ -150,3 +150,18 @@ Licença ainda não definida. Todos os direitos permanecem reservados ao titular
 - Catálogo GET, dashboard GET e checkout POST permanecem públicos nesta etapa para preservar o MVP demonstrativo.
 - **Não coloque JWT_SECRET no GitHub.** Configure no seu `.env` local; para desenvolvimento use uma sequência aleatória longa, gerada localmente, e não a compartilhe.
 - Esta etapa ainda depende de CI e testes de integração para validação; cadastro, login e autorização devem ser exercitados antes do merge.
+
+## Administração de produtos — v0.2.0 (em validação)
+
+Todos os endpoints abaixo exigem JWT com perfil `ADMIN`; um usuário criado por `/api/auth/register` recebe somente `CUSTOMER`.
+
+| Método | Rota | Comportamento |
+| --- | --- | --- |
+| GET | `/api/admin/products` | Lista o catálogo para administração |
+| POST | `/api/admin/products` | Cria produto (HTTP 201) |
+| PUT | `/api/admin/products/{id}` | Atualiza os campos do produto |
+| DELETE | `/api/admin/products/{id}` | Exclui produto (HTTP 204), somente se não houver itens de pedidos associados |
+
+O corpo para criar ou editar produtos exige `name` (até 150 caracteres), `category` (até 70), `description` (até 500), `price` positivo com até duas casas decimais e `stock` não negativo. `imageUrl` é opcional (até 500 caracteres). Ao excluir produto já referenciado em `order_items`, a API retorna 409 para preservar o histórico.
+
+**Limite atual:** ainda não existe provisionamento de ADMIN por endpoint público nem painel visual administrativo; testes unitários não substituem testes HTTP de autorização ou testes integrados no PostgreSQL. Não promover esta branch para produção antes dessas validações.
